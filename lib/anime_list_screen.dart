@@ -24,7 +24,7 @@ class AnimeListScreen extends StatelessWidget {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
             List<Anime> animeList = snapshot.data!;
-            return _buildAnimeList(context, animeList);
+            return _buildAnimeList(context, animeList, isLandscape);
           } else {
             return const Center(child: Text('No data available'));
           }
@@ -33,20 +33,15 @@ class AnimeListScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAnimeList(BuildContext context, List<Anime> animeList) {
+  Widget _buildAnimeList(
+      BuildContext context, List<Anime> animeList, bool isLandscape) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 8.0,
-          mainAxisSpacing: 8.0,
-        ),
-        itemCount: animeList.length,
-        itemBuilder: (context, index) {
-          Anime anime = animeList[index];
-          return _buildAnimeCard(context, anime);
-        },
+      child: GridView.count(
+        crossAxisCount: isLandscape ? 4 : 2,
+        childAspectRatio: 2 / 3,
+        children:
+            animeList.map((anime) => _buildAnimeCard(context, anime)).toList(),
       ),
     );
   }
@@ -61,26 +56,85 @@ class AnimeListScreen extends StatelessWidget {
           ),
         );
       },
-      child: Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: _buildAnimeImage(anime.imageUrl),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                anime.titleEnglish,
-                style: const TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
+      child: AspectRatio(
+        aspectRatio: 2 / 3,
+        child: Card(
+          child: Stack(
+            children: [
+              _buildAnimeImage(anime.imageUrl),
+              _buildAnimeDetails(context, anime),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAnimeDetails(BuildContext context, Anime anime) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        color: Colors.black.withOpacity(0.7),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                anime.titleEnglish,
+                style: const TextStyle(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 4.0),
+              Row(
+                children: [
+                  _buildAnimeScore(anime),
+                  const SizedBox(width: 8.0),
+                  _buildAnimePop(anime),
+                ],
+              ),
+              const SizedBox(height: 8.0),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnimePop(Anime anime) {
+    return Row(
+      children: [
+        const Icon(Icons.thumb_up, color: Colors.white, size: 16.0),
+        const SizedBox(width: 4.0),
+        Text(
+          anime.popularity.toString(),
+          style: const TextStyle(
+            fontSize: 14.0,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAnimeScore(Anime anime) {
+    return Row(
+      children: [
+        const Icon(Icons.star, color: Colors.yellow, size: 16.0),
+        const SizedBox(width: 4.0),
+        Text(
+          anime.score.toString(),
+          style: const TextStyle(
+            fontSize: 14.0,
+            color: Colors.white,
+          ),
+        ),
+      ],
     );
   }
 
@@ -88,10 +142,15 @@ class AnimeListScreen extends StatelessWidget {
     return Image.network(
       imageUrl,
       fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
+      width: double.infinity,
+      height: double.infinity,
+      errorBuilder:
+          (BuildContext context, Object exception, StackTrace? stackTrace) {
         return Image.asset(
-          'assets/images/placeholderAnime.jpg', // Path to your fallback image asset
+          'assets/images/placeholderAnime.jpg',
           fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
         );
       },
     );

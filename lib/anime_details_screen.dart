@@ -123,7 +123,7 @@ class AnimeDetailsScreen extends StatelessWidget {
         ),
         Text(
           text,
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
+          style: const TextStyle(fontSize: 14, color: Colors.black),
         ),
       ],
     );
@@ -181,13 +181,13 @@ class AnimeDetailsScreen extends StatelessWidget {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: Colors.grey,
+            color: Colors.white,
           ),
         ),
         const SizedBox(width: 4),
         Text(
           value,
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
+          style: const TextStyle(fontSize: 14, color: Colors.white),
         ),
       ],
     );
