@@ -3,6 +3,9 @@ import 'package:seasonal_anime_app/models/anime.dart';
 
 class AnimeDetailsScreen extends StatelessWidget {
   final Anime anime;
+  static const double defaultSpacing = 8.0;
+  static const double titleFontSize = 16.0;
+  static const double contentFontSize = 14.0;
 
   const AnimeDetailsScreen({Key? key, required this.anime}) : super(key: key);
 
@@ -48,9 +51,9 @@ class AnimeDetailsScreen extends StatelessWidget {
                         const SizedBox(height: 4.0),
                         Row(
                           children: [
-                            _buildScore('Score:', anime.score.toString()),
+                            _buildAnimeScore(anime),
                             const SizedBox(width: 12.0),
-                            _buildScore('Rank:', anime.rank.toString()),
+                            _buildAnimePop(anime),
                           ],
                         ),
                       ],
@@ -113,26 +116,30 @@ class AnimeDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildText(String label, String text) {
+  /// Builds a text widget for a label and value pair.
+  Widget _buildText(String label, String? text) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+              fontSize: titleFontSize, fontWeight: FontWeight.bold),
         ),
         Text(
-          text,
-          style: const TextStyle(fontSize: 14, color: Colors.black),
+          text ?? '',
+          style:
+              const TextStyle(fontSize: contentFontSize, color: Colors.black),
         ),
       ],
     );
   }
 
+  /// Builds a grid of information widgets.
   Widget _buildInfoGrid(List<Widget> children) {
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: defaultSpacing,
+      runSpacing: defaultSpacing,
       children: children,
     );
   }
@@ -165,29 +172,44 @@ class AnimeDetailsScreen extends StatelessWidget {
         const SizedBox(height: 8),
         _buildInfoGrid(
           [
-            _buildScore('Popularity', anime.popularity.toString()),
+            _buildText('Score', anime.score.toString()),
+            _buildText('Rank', anime.rank.toString()),
+            _buildText('Popularity', anime.popularity.toString()),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildScore(String label, String value) {
+  /// Builds a row displaying the anime's popularity using a thumb-up icon and the popularity value.
+  Widget _buildAnimePop(Anime anime) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
+        const Icon(Icons.thumb_up, color: Colors.white, size: 16),
+        const SizedBox(width: 4),
         Text(
-          label,
+          anime.popularity.toString(),
           style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
+            fontSize: contentFontSize,
             color: Colors.white,
           ),
         ),
+      ],
+    );
+  }
+
+  /// Builds a row displaying the anime's score using a star icon and the score value.
+  Widget _buildAnimeScore(Anime anime) {
+    return Row(
+      children: [
+        const Icon(Icons.star, color: Colors.yellow, size: 16),
         const SizedBox(width: 4),
         Text(
-          value,
-          style: const TextStyle(fontSize: 14, color: Colors.white),
+          anime.score.toString(),
+          style: const TextStyle(
+            fontSize: contentFontSize,
+            color: Colors.white,
+          ),
         ),
       ],
     );

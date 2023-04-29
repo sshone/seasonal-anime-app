@@ -3,8 +3,18 @@ import 'package:seasonal_anime_app/models/anime.dart';
 import 'package:seasonal_anime_app/anime_details_screen.dart';
 import 'package:seasonal_anime_app/services/anime_service_stub.dart';
 
+const double paddingSize = 8.0;
+const double titleFontSize = 18.0;
+const double subtitleFontSize = 14.0;
+const double iconSize = 16.0;
+const double smallSpacing = 4.0;
+const double mediumSpacing = 8.0;
+const double cardAspectRatio = 2 / 3;
+
 class AnimeListScreen extends StatelessWidget {
   final AnimeServiceStub _animeService = AnimeServiceStub();
+
+  AnimeListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -33,19 +43,21 @@ class AnimeListScreen extends StatelessWidget {
     );
   }
 
+  /// Builds the anime list with cards for each anime.
   Widget _buildAnimeList(
       BuildContext context, List<Anime> animeList, bool isLandscape) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(paddingSize),
       child: GridView.count(
         crossAxisCount: isLandscape ? 4 : 2,
-        childAspectRatio: 2 / 3,
+        childAspectRatio: cardAspectRatio,
         children:
             animeList.map((anime) => _buildAnimeCard(context, anime)).toList(),
       ),
     );
   }
 
+  /// Builds a card for an anime with its image, title, score, and popularity.
   Widget _buildAnimeCard(BuildContext context, Anime anime) {
     return GestureDetector(
       onTap: () {
@@ -57,7 +69,7 @@ class AnimeListScreen extends StatelessWidget {
         );
       },
       child: AspectRatio(
-        aspectRatio: 2 / 3,
+        aspectRatio: cardAspectRatio,
         child: Card(
           child: Stack(
             children: [
@@ -70,6 +82,7 @@ class AnimeListScreen extends StatelessWidget {
     );
   }
 
+  /// Builds the details overlay for an anime card, including the title, score, and popularity.
   Widget _buildAnimeDetails(BuildContext context, Anime anime) {
     return Positioned(
       bottom: 0,
@@ -78,27 +91,27 @@ class AnimeListScreen extends StatelessWidget {
       child: Container(
         color: Colors.black.withOpacity(0.7),
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(paddingSize),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 anime.titleEnglish,
                 style: const TextStyle(
-                  fontSize: 18.0,
+                  fontSize: titleFontSize,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 4.0),
+              const SizedBox(height: smallSpacing),
               Row(
                 children: [
                   _buildAnimeScore(anime),
-                  const SizedBox(width: 8.0),
+                  const SizedBox(width: mediumSpacing),
                   _buildAnimePop(anime),
                 ],
               ),
-              const SizedBox(height: 8.0),
+              const SizedBox(height: mediumSpacing),
             ],
           ),
         ),
@@ -106,15 +119,16 @@ class AnimeListScreen extends StatelessWidget {
     );
   }
 
+  /// Builds a row displaying the anime's popularity using a thumb-up icon and the popularity value.
   Widget _buildAnimePop(Anime anime) {
     return Row(
       children: [
-        const Icon(Icons.thumb_up, color: Colors.white, size: 16.0),
-        const SizedBox(width: 4.0),
+        const Icon(Icons.thumb_up, color: Colors.white, size: iconSize),
+        const SizedBox(width: smallSpacing),
         Text(
           anime.popularity.toString(),
           style: const TextStyle(
-            fontSize: 14.0,
+            fontSize: subtitleFontSize,
             color: Colors.white,
           ),
         ),
@@ -122,15 +136,16 @@ class AnimeListScreen extends StatelessWidget {
     );
   }
 
+  /// Builds a row displaying the anime's score using a star icon and the score value.
   Widget _buildAnimeScore(Anime anime) {
     return Row(
       children: [
-        const Icon(Icons.star, color: Colors.yellow, size: 16.0),
-        const SizedBox(width: 4.0),
+        const Icon(Icons.star, color: Colors.yellow, size: iconSize),
+        const SizedBox(width: smallSpacing),
         Text(
           anime.score.toString(),
           style: const TextStyle(
-            fontSize: 14.0,
+            fontSize: subtitleFontSize,
             color: Colors.white,
           ),
         ),
@@ -138,6 +153,7 @@ class AnimeListScreen extends StatelessWidget {
     );
   }
 
+  /// Builds the anime's image with a placeholder in case of errors.
   Widget _buildAnimeImage(String imageUrl) {
     return Image.network(
       imageUrl,
