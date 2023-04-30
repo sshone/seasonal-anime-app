@@ -51,13 +51,17 @@ class Anime {
               json.containsKey('episodes') ||
               json.containsKey('status') ||
               json.containsKey('duration') ||
-              json.containsKey('rating')
+              json.containsKey('rating') ||
+              json.containsKey('season') ||
+              json.containsKey('year')
           ? AnimeDetails(
               type: json['type'],
               episodes: json['episodes'],
               status: json['status'],
               duration: json['duration'],
               rating: json['rating'],
+              season: json['season'],
+              year: json['year'],
             )
           : null,
       airingSchedule: json.containsKey('aired')
@@ -136,6 +140,8 @@ class AnimeDetails {
   final String? status;
   final String? duration;
   final String? rating;
+  final String? season;
+  final int? year;
 
   AnimeDetails({
     this.type,
@@ -143,6 +149,8 @@ class AnimeDetails {
     this.status,
     this.duration,
     this.rating,
+    this.season,
+    this.year,
   });
 }
 

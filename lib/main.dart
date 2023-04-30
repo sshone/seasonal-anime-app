@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'anime_list_screen.dart';
+import 'package:seasonal_anime_app/screens/anime_list_screen.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

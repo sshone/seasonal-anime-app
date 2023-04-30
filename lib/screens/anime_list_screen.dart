@@ -1,10 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:seasonal_anime_app/anime_details_screen.dart';
 import 'package:seasonal_anime_app/services/anime_service.dart';
 
-import 'models/anime.dart';
+import '../models/anime.dart';
+import 'anime_details_screen.dart';
 
 const double paddingSize = 8.0;
 const double titleFontSize = 18.0;
