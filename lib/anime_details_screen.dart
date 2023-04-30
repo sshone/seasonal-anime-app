@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:seasonal_anime_app/models/anime.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class AnimeDetailsScreen extends StatelessWidget {
   final Anime anime;
@@ -16,7 +18,9 @@ class AnimeDetailsScreen extends StatelessWidget {
     final bool showAppBar = !isLandscape;
 
     return Scaffold(
-      appBar: showAppBar ? AppBar(title: const Text('Anime Details')) : null,
+      appBar: showAppBar
+          ? AppBar(title: Text(anime.titleDetails?.titleEnglish ?? anime.title))
+          : null,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -24,42 +28,7 @@ class AnimeDetailsScreen extends StatelessWidget {
             child: Stack(
               children: [
                 _buildImage(),
-                Positioned(
-                  bottom: 16.0,
-                  left: 16.0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8.0,
-                      horizontal: 12.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          anime.titleEnglish,
-                          style: const TextStyle(
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 4.0),
-                        Row(
-                          children: [
-                            _buildAnimeScore(anime),
-                            const SizedBox(width: 12.0),
-                            _buildAnimePop(anime),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                _buildOverlay(),
               ],
             ),
           ),
@@ -69,21 +38,22 @@ class AnimeDetailsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildText('Japanese Title:', anime.titleJapanese),
+                  _buildText(
+                      'Japanese Title:', anime.titleDetails?.titleJapanese),
                   const SizedBox(height: 8),
                   _buildText(
                     'Alternative Titles:',
-                    anime.titleSynonyms.join(', '),
+                    anime.titleSynonyms?.join(', '),
                   ),
                   const SizedBox(height: 16),
                   _buildText('Synopsis:', anime.synopsis),
                   const SizedBox(height: 16),
                   _buildInfoGrid([
-                    _buildText('Type', anime.type),
-                    _buildText('Episodes', anime.episodes.toString()),
-                    _buildText('Status', anime.status),
-                    _buildText('Duration', anime.duration),
-                    _buildText('Rating', anime.rating),
+                    _buildText('Type', anime.details?.type),
+                    _buildText('Episodes', anime.details?.episodes.toString()),
+                    _buildText('Status', anime.details?.status),
+                    _buildText('Duration', anime.details?.duration),
+                    _buildText('Rating', anime.details?.rating),
                   ]),
                   const SizedBox(height: 16),
                   _buildAiringDates(),
@@ -98,26 +68,91 @@ class AnimeDetailsScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildOverlay() {
+    return Positioned(
+      bottom: 16.0,
+      left: 16.0,
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final availableWidth = constraints.maxWidth;
+
+          return Container(
+            padding: const EdgeInsets.symmetric(
+              vertical: 8.0,
+              horizontal: 12.0,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildAutoSizeText(
+                  anime.titleDetails?.titleEnglish ?? anime.title,
+                  availableWidth,
+                ),
+                const SizedBox(height: 4.0),
+                Row(
+                  children: [
+                    _buildAnimeScore(anime),
+                    const SizedBox(width: 12.0),
+                    _buildAnimePop(anime),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildAutoSizeText(String text, double availableWidth) {
+    return AutoSizeText(
+      text,
+      style: const TextStyle(
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      maxLines: 2,
+      minFontSize: 12, // Adjust the minimum font size as needed
+      maxFontSize: 20, // Adjust the maximum font size as needed
+      overflowReplacement: Text(
+        text,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize:
+              12, // Adjust the font size for overflow replacement as needed
+          color: Colors.white,
+        ),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
   Widget _buildImage() {
-    return Image.network(
-      anime.imageUrl,
+    return CachedNetworkImage(
+      imageUrl: anime.imageUrls.largeImageUrl ?? anime.imageUrls.imageUrl,
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
-      errorBuilder:
-          (BuildContext context, Object exception, StackTrace? stackTrace) {
-        return Image.asset(
-          'assets/images/placeholderAnime.jpg',
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: double.infinity,
-        );
-      },
+      errorWidget: (context, url, error) => Image.asset(
+        'assets/images/placeholderAnime.jpg',
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+      ),
     );
   }
 
   /// Builds a text widget for a label and value pair.
   Widget _buildText(String label, String? text) {
+    if (text == null || text.isEmpty) {
+      return const SizedBox.shrink(); // Return an empty widget if text is null
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -127,7 +162,7 @@ class AnimeDetailsScreen extends StatelessWidget {
               fontSize: titleFontSize, fontWeight: FontWeight.bold),
         ),
         Text(
-          text ?? '',
+          text,
           style:
               const TextStyle(fontSize: contentFontSize, color: Colors.black),
         ),
@@ -154,8 +189,9 @@ class AnimeDetailsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         _buildInfoGrid([
-          _buildText('From', anime.airingStart),
-          _buildText('To', anime.airingEnd),
+          _buildText('From', anime.airingSchedule?.airingStart ?? ''),
+          if (anime.airingSchedule?.airingEnd != null)
+            _buildText('To', anime.airingSchedule?.airingEnd),
         ]),
       ],
     );
@@ -165,16 +201,11 @@ class AnimeDetailsScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Scores:',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
         _buildInfoGrid(
           [
-            _buildText('Score', anime.score.toString()),
-            _buildText('Rank', anime.rank.toString()),
-            _buildText('Popularity', anime.popularity.toString()),
+            _buildText('Score', anime.scores?.score.toString()),
+            _buildText('Rank', anime.scores?.rank.toString()),
+            _buildText('Popularity', anime.scores?.popularity.toString()),
           ],
         ),
       ],
@@ -188,7 +219,7 @@ class AnimeDetailsScreen extends StatelessWidget {
         const Icon(Icons.thumb_up, color: Colors.white, size: 16),
         const SizedBox(width: 4),
         Text(
-          anime.popularity.toString(),
+          anime.scores?.popularity.toString() ?? '',
           style: const TextStyle(
             fontSize: contentFontSize,
             color: Colors.white,
@@ -205,7 +236,7 @@ class AnimeDetailsScreen extends StatelessWidget {
         const Icon(Icons.star, color: Colors.yellow, size: 16),
         const SizedBox(width: 4),
         Text(
-          anime.score.toString(),
+          anime.scores?.score.toString() ?? '',
           style: const TextStyle(
             fontSize: contentFontSize,
             color: Colors.white,
