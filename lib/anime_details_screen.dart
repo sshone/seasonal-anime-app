@@ -5,7 +5,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 
 class AnimeDetailsScreen extends StatelessWidget {
   final Anime anime;
-  static const double defaultSpacing = 8.0;
+  static const double defaultVerticalSpacing = 16.0;
+  static const double defaultHorizontalSpacing = 8.0;
   static const double titleFontSize = 16.0;
   static const double contentFontSize = 14.0;
 
@@ -13,122 +14,176 @@ class AnimeDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
-    final bool showAppBar = !isLandscape;
-
     return Scaffold(
-      appBar: showAppBar
-          ? AppBar(title: Text(anime.titleDetails?.titleEnglish ?? anime.title))
-          : null,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                _buildImage(),
-                _buildOverlay(),
-              ],
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildText(
-                      'Japanese Title:', anime.titleDetails?.titleJapanese),
-                  const SizedBox(height: 8),
-                  _buildText(
-                    'Alternative Titles:',
-                    anime.titleSynonyms?.join(', '),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildText('Synopsis:', anime.synopsis),
-                  const SizedBox(height: 16),
-                  _buildInfoGrid([
-                    _buildText('Type', anime.details?.type),
-                    _buildText('Episodes', anime.details?.episodes.toString()),
-                    _buildText('Status', anime.details?.status),
-                    _buildText('Duration', anime.details?.duration),
-                    _buildText('Rating', anime.details?.rating),
-                  ]),
-                  const SizedBox(height: 16),
-                  _buildAiringDates(),
-                  const SizedBox(height: 16),
-                  _buildScores(),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOverlay() {
-    return Positioned(
-      bottom: 16.0,
-      left: 16.0,
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final availableWidth = constraints.maxWidth;
-
-          return Container(
-            padding: const EdgeInsets.symmetric(
-              vertical: 8.0,
-              horizontal: 12.0,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildAutoSizeText(
-                  anime.titleDetails?.titleEnglish ?? anime.title,
-                  availableWidth,
-                ),
-                const SizedBox(height: 4.0),
-                Row(
-                  children: [
-                    _buildAnimeScore(anime),
-                    const SizedBox(width: 12.0),
-                    _buildAnimePop(anime),
-                  ],
-                ),
-              ],
-            ),
-          );
+      body: OrientationBuilder(
+        builder: (context, orientation) {
+          if (orientation == Orientation.portrait) {
+            return _buildPortraitLayout(context);
+          } else {
+            return _buildLandscapeLayout(context);
+          }
         },
       ),
     );
   }
 
-  Widget _buildAutoSizeText(String text, double availableWidth) {
-    return AutoSizeText(
-      text,
-      style: const TextStyle(
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-      ),
-      maxLines: 2,
-      minFontSize: 12, // Adjust the minimum font size as needed
-      maxFontSize: 20, // Adjust the maximum font size as needed
-      overflowReplacement: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize:
-              12, // Adjust the font size for overflow replacement as needed
-          color: Colors.white,
+  Widget _buildPortraitLayout(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        _buildSliverAppBar(context, Orientation.portrait),
+        _buildSliverList(context),
+      ],
+    );
+  }
+
+  Widget _buildLandscapeLayout(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final imageWidth = screenWidth * 1 / 3;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Row(
+      children: [
+        SizedBox(
+          width: imageWidth,
+          height: screenHeight,
+          child: _buildImage(),
         ),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
+        Expanded(
+          child: CustomScrollView(
+            slivers: [
+              _buildSliverAppBar(context, Orientation.landscape),
+              _buildSliverList(context),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSliverAppBar(BuildContext context, Orientation orientation) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    if (orientation == Orientation.landscape) {
+      return SliverAppBar(
+        pinned: true,
+        title: AutoSizeText(
+          anime.titleDetails?.titleEnglish ?? anime.title,
+          style: const TextStyle(
+            shadows: [
+              Shadow(
+                offset: Offset(1.0, 1.0),
+                blurRadius: 2.0,
+                color: Color.fromARGB(255, 0, 0, 0),
+              ),
+            ],
+          ),
+          maxLines: 2,
+        ),
+      );
+    }
+
+    return SliverAppBar(
+      expandedHeight: screenHeight * 2 / 3,
+      pinned: true,
+      flexibleSpace: FlexibleSpaceBar(
+        title: AutoSizeText(
+          anime.titleDetails?.titleEnglish ?? anime.title,
+          style: const TextStyle(
+            shadows: [
+              Shadow(
+                offset: Offset(1.0, 1.0),
+                blurRadius: 2.0,
+                color: Color.fromARGB(255, 0, 0, 0),
+              ),
+            ],
+          ),
+          maxLines: 2,
+        ),
+        background: Stack(
+          fit: StackFit.expand,
+          children: [
+            _buildImage(),
+            _buildGradientOverlay(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSliverList(BuildContext context) {
+    return SliverList(
+      delegate: SliverChildListDelegate([
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(16.0),
+              topRight: Radius.circular(16.0),
+            ),
+            color: Theme.of(context).canvasColor,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionHeader('Synopsis'),
+                _buildText(null, anime.synopsis),
+                _buildSectionHeader('Title Information'),
+                _buildText(
+                    'Japanese Title:', anime.titleDetails?.titleJapanese),
+                _buildText(
+                  'Alternative Titles:',
+                  anime.titleSynonyms?.join(', '),
+                ),
+                _buildSectionHeader('Anime Details'),
+                _buildInfoGrid([
+                  _buildText('Type', anime.details?.type),
+                  _buildText('Episodes', anime.details?.episodes.toString()),
+                  _buildText('Status', anime.details?.status),
+                  _buildText('Duration', anime.details?.duration),
+                  _buildText('Rating', anime.details?.rating),
+                ]),
+                _buildSectionHeader('Airing Dates'),
+                _buildAiringDates(),
+                _buildSectionHeader('Scores & Rankings'),
+                _buildScores(),
+              ],
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _buildGradientOverlay() {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.black.withOpacity(0.7),
+            Colors.black.withOpacity(0.2),
+            Colors.transparent
+          ],
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          stops: const [0, 0.5, 1],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScoreAndPopularity() {
+    return Positioned(
+      bottom: 16.0, // Move it closer to the bottom edge
+      left: 16.0,
+      child: Row(
+        // Change to Row for horizontal layout
+        children: [
+          _buildAnimeScore(anime),
+          const SizedBox(
+              width: 16.0), // Add horizontal space between score and popularity
+          _buildAnimePop(anime),
+        ],
       ),
     );
   }
@@ -148,24 +203,36 @@ class AnimeDetailsScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 20, // Increase the font size for section headers
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
   /// Builds a text widget for a label and value pair.
-  Widget _buildText(String label, String? text) {
+  Widget _buildText(String? label, String? text) {
     if (text == null || text.isEmpty) {
-      return const SizedBox.shrink(); // Return an empty widget if text is null
+      return const SizedBox.shrink();
     }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-              fontSize: titleFontSize, fontWeight: FontWeight.bold),
-        ),
+        if (label != null)
+          Text(
+            label,
+            style: const TextStyle(
+                fontSize: titleFontSize, fontWeight: FontWeight.bold),
+          ),
         Text(
           text,
-          style:
-              const TextStyle(fontSize: contentFontSize, color: Colors.black),
+          style: const TextStyle(fontSize: contentFontSize),
         ),
+        const SizedBox(height: defaultVerticalSpacing),
       ],
     );
   }
@@ -173,8 +240,8 @@ class AnimeDetailsScreen extends StatelessWidget {
   /// Builds a grid of information widgets.
   Widget _buildInfoGrid(List<Widget> children) {
     return Wrap(
-      spacing: defaultSpacing,
-      runSpacing: defaultSpacing,
+      spacing: defaultVerticalSpacing,
+      runSpacing: defaultHorizontalSpacing,
       children: children,
     );
   }

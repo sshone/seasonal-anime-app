@@ -11,9 +11,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Seasonal Anime App',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        useMaterial3: true,
+        colorSchemeSeed: Colors.deepPurple,
         visualDensity: VisualDensity.adaptivePlatformDensity,
         fontFamily: 'Poppins',
+        brightness: Brightness.dark,
       ),
       home: AnimeListScreen(),
     );
