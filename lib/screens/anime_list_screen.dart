@@ -29,6 +29,7 @@ class _AnimeListScreenState extends State<AnimeListScreen> {
   final AnimeServiceApi _animeService = AnimeServiceApi();
   SortOption _sortOption = SortOption.score;
   SortOrder _sortOrder = SortOrder.descending;
+  bool _showSortOptions = false;
 
   @override
   Widget build(BuildContext context) {
@@ -41,63 +42,61 @@ class _AnimeListScreenState extends State<AnimeListScreen> {
           ? AppBar(
               title: const Text('Current Anime Season'),
               actions: [
-                PopupMenuButton<dynamic>(
+                IconButton(
                   icon: const Icon(Icons.sort),
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: SortOption.title,
-                      child: Text("Sort by Title"),
-                    ),
-                    const PopupMenuItem(
-                      value: SortOption.score,
-                      child: Text("Sort by Score"),
-                    ),
-                    const PopupMenuItem(
-                      value: SortOption.popularity,
-                      child: Text("Sort by Popularity"),
-                    ),
-                    const PopupMenuDivider(),
-                    const PopupMenuItem(
-                      value: SortOrder.ascending,
-                      child: Text("Ascending"),
-                    ),
-                    const PopupMenuItem(
-                      value: SortOrder.descending,
-                      child: Text("Descending"),
-                    ),
-                  ],
-                  onSelected: (dynamic value) {
+                  onPressed: () {
                     setState(() {
-                      if (value is SortOption) {
-                        _sortOption = value;
-                      } else if (value is SortOrder) {
-                        _sortOrder = value;
-                      }
+                      _showSortOptions = !_showSortOptions;
                     });
                   },
                 ),
               ],
             )
           : null,
-      body: FutureBuilder<List<Anime>>(
-        future: _animeService.fetchCurrentSeasonAnime().catchError((error) {
-          if (kDebugMode) {
-            print('Failed to load seasonal anime: $error');
-          }
-          return Future.value(<Anime>[]); // Return an empty list of anime
-        }),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (snapshot.hasData) {
-            List<Anime> animeList = snapshot.data!;
-            return _buildAnimeList(context, animeList, isLandscape);
-          } else {
-            return const Center(child: Text('No data available'));
-          }
-        },
+      body: Column(
+        children: [
+          Expanded(
+            child: Stack(
+              children: [
+                Column(
+                  children: [
+                    Expanded(
+                      child: FutureBuilder<List<Anime>>(
+                        future: _animeService
+                            .fetchCurrentSeasonAnime()
+                            .catchError((error) {
+                          if (kDebugMode) {
+                            print('Failed to load seasonal anime: $error');
+                          }
+                          return Future.value(
+                              <Anime>[]); // Return an empty list of anime
+                        }),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Center(
+                                child: Text('Error: ${snapshot.error}'));
+                          } else if (snapshot.hasData) {
+                            List<Anime> animeList = snapshot.data!;
+                            return _buildAnimeList(
+                                context, animeList, isLandscape);
+                          } else {
+                            return const Center(
+                                child: Text('No data available'));
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                _buildSortOptionsBanner(),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -270,6 +269,70 @@ class _AnimeListScreenState extends State<AnimeListScreen> {
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
+      ),
+    );
+  }
+
+  Widget _buildSortOptionsBanner() {
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 300),
+      top: _showSortOptions ? 0 : -kToolbarHeight,
+      left: 0,
+      right: 0,
+      child: Material(
+        elevation: 4.0,
+        child: Container(
+          height: kToolbarHeight,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Icon(Icons.sort),
+              DropdownButton<SortOption>(
+                value: _sortOption,
+                onChanged: (SortOption? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      _sortOption = newValue;
+                    });
+                  }
+                },
+                items: SortOption.values
+                    .map<DropdownMenuItem<SortOption>>((SortOption value) {
+                  return DropdownMenuItem<SortOption>(
+                    value: value,
+                    child: Text(value.toString().split('.').last),
+                  );
+                }).toList(),
+              ),
+              DropdownButton<SortOrder>(
+                value: _sortOrder,
+                onChanged: (SortOrder? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      _sortOrder = newValue;
+                    });
+                  }
+                },
+                items: SortOrder.values
+                    .map<DropdownMenuItem<SortOrder>>((SortOrder value) {
+                  return DropdownMenuItem<SortOrder>(
+                    value: value,
+                    child: Text(value.toString().split('.').last),
+                  );
+                }).toList(),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _showSortOptions = false;
+                  });
+                },
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
