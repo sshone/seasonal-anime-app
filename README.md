@@ -1,16 +1,31 @@
-# seasonal_anime_app
+# Anime Details App
 
-A new Flutter project.
+This is a simple Flutter application that displays detailed information about an anime, including the title, genres, synopsis, and other relevant details. The app is designed to work on both portrait and landscape modes, adapting the layout accordingly.
+
+## Features
+
+- Fetches and displays detailed information about an anime
+- Supports both portrait and landscape modes
+- Responsive layout that adapts to different screen sizes and orientations
+- Caching of images for improved performance
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+To get started with this project, follow these steps:
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. Clone the repository:
+   ```
+   git clone https://github.com/sshone/seasonal-anime-app.git
+   ```
+2. Change into the project directory:
+   ```
+   cd seasonal-anime-app
+   ```
+3. Install the dependencies:
+   ```
+   flutter pub get
+   ```
+4. Run the app on an emulator or a physical device:
+   ```
+   flutter run
+   ```
