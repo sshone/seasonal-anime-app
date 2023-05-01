@@ -35,7 +35,7 @@ class FullscreenImage extends StatelessWidget {
             right: 16,
             child: IconButton(
               onPressed: () => Navigator.pop(context),
-              icon: Icon(Icons.close, color: Colors.white),
+              icon: const Icon(Icons.close, color: Colors.white),
             ),
           ),
         ],

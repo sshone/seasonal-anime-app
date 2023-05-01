@@ -6,6 +6,10 @@ import 'package:seasonal_anime_app/services/anime_service.dart';
 import '../models/anime.dart';
 import 'anime_details_screen.dart';
 
+enum SortOption { title, score, popularity }
+
+enum SortOrder { ascending, descending }
+
 const double paddingSize = 8.0;
 const double titleFontSize = 18.0;
 const double subtitleFontSize = 14.0;
@@ -14,10 +18,17 @@ const double smallSpacing = 4.0;
 const double mediumSpacing = 8.0;
 const double cardAspectRatio = 2 / 3;
 
-class AnimeListScreen extends StatelessWidget {
-  final AnimeServiceApi _animeService = AnimeServiceApi();
+class AnimeListScreen extends StatefulWidget {
+  AnimeListScreen({Key? key}) : super(key: key);
 
-  AnimeListScreen({super.key});
+  @override
+  _AnimeListScreenState createState() => _AnimeListScreenState();
+}
+
+class _AnimeListScreenState extends State<AnimeListScreen> {
+  final AnimeServiceApi _animeService = AnimeServiceApi();
+  SortOption _sortOption = SortOption.score;
+  SortOrder _sortOrder = SortOrder.descending;
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +37,48 @@ class AnimeListScreen extends StatelessWidget {
     final bool showAppBar = !isLandscape;
 
     return Scaffold(
-      appBar:
-          showAppBar ? AppBar(title: const Text('Current Anime Season')) : null,
+      appBar: showAppBar
+          ? AppBar(
+              title: const Text('Current Anime Season'),
+              actions: [
+                PopupMenuButton<dynamic>(
+                  icon: const Icon(Icons.sort),
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: SortOption.title,
+                      child: Text("Sort by Title"),
+                    ),
+                    const PopupMenuItem(
+                      value: SortOption.score,
+                      child: Text("Sort by Score"),
+                    ),
+                    const PopupMenuItem(
+                      value: SortOption.popularity,
+                      child: Text("Sort by Popularity"),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
+                      value: SortOrder.ascending,
+                      child: Text("Ascending"),
+                    ),
+                    const PopupMenuItem(
+                      value: SortOrder.descending,
+                      child: Text("Descending"),
+                    ),
+                  ],
+                  onSelected: (dynamic value) {
+                    setState(() {
+                      if (value is SortOption) {
+                        _sortOption = value;
+                      } else if (value is SortOrder) {
+                        _sortOrder = value;
+                      }
+                    });
+                  },
+                ),
+              ],
+            )
+          : null,
       body: FutureBuilder<List<Anime>>(
         future: _animeService.fetchCurrentSeasonAnime().catchError((error) {
           if (kDebugMode) {
@@ -54,6 +105,24 @@ class AnimeListScreen extends StatelessWidget {
   /// Builds the anime list with cards for each anime.
   Widget _buildAnimeList(
       BuildContext context, List<Anime> animeList, bool isLandscape) {
+    animeList.sort((a, b) {
+      int compareResult;
+      switch (_sortOption) {
+        case SortOption.title:
+          compareResult = a.title.compareTo(b.title);
+          break;
+        case SortOption.score:
+          compareResult =
+              (a.scores?.score ?? 0).compareTo(b.scores?.score ?? 0);
+          break;
+        case SortOption.popularity:
+          compareResult =
+              (a.scores?.popularity ?? 0).compareTo(b.scores?.popularity ?? 0);
+          break;
+      }
+      return _sortOrder == SortOrder.ascending ? compareResult : -compareResult;
+    });
+
     return Padding(
       padding: const EdgeInsets.all(paddingSize),
       child: GridView.count(
