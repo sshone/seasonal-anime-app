@@ -1,13 +1,19 @@
-# Anime Details App
+# Anime Season Guide
+### Your Companion for Seasonal Anime
 
 This is a simple Flutter application that displays detailed information about an anime, including the title, genres, synopsis, and other relevant details. The app is designed to work on both portrait and landscape modes, adapting the layout accordingly.
 
 ## Features
 
-- Fetches and displays detailed information about an anime
+- Displays all the anime in the current season
+   - Sorting Functionality
+      - Sort by Score
+      - Sort by Ranking
+      - Sort by Popularity
+- Detailed information about individual anime in the season
 - Supports both portrait and landscape modes
 - Responsive layout that adapts to different screen sizes and orientations
-- Caching of images for improved performance
+- Caching of data for for improved performance and less data usage
 
 ## Getting Started
 
