@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class FullscreenImage extends StatelessWidget {
   final String imageUrl;
@@ -14,6 +18,7 @@ class FullscreenImage extends StatelessWidget {
         children: [
           GestureDetector(
             onTap: () => Navigator.pop(context),
+            onLongPress: () => _downloadImage(context, imageUrl),
             child: Center(
               child: InteractiveViewer(
                 panEnabled: false,
@@ -41,5 +46,26 @@ class FullscreenImage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _downloadImage(BuildContext context, String imageUrl) async {
+    try {
+      final file = await DefaultCacheManager().getSingleFile(imageUrl);
+      final bytes = await file.readAsBytes();
+      final result = await ImageGallerySaver.saveImage(bytes);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result != null
+              ? 'Image successfully saved to gallery'
+              : 'Failed to save image to gallery'),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving image to gallery: $e'),
+        ),
+      );
+    }
   }
 }

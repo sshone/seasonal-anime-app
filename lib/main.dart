@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Poppins',
         brightness: Brightness.dark,
       ),
-      home: AnimeListScreen(),
+      home: const AnimeListScreen(),
     );
   }
 }

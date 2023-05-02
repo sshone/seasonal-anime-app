@@ -6,20 +6,20 @@ import 'package:seasonal_anime_app/services/anime_service.dart';
 import '../models/anime.dart';
 import 'anime_details_screen.dart';
 
-enum SortOption { title, score, popularity }
+enum SortOption { title, score, rank, favorites }
 
 enum SortOrder { ascending, descending }
 
 const double paddingSize = 8.0;
 const double titleFontSize = 18.0;
-const double subtitleFontSize = 14.0;
+const double subtitleFontSize = 10.0;
 const double iconSize = 16.0;
 const double smallSpacing = 4.0;
 const double mediumSpacing = 8.0;
 const double cardAspectRatio = 2 / 3;
 
 class AnimeListScreen extends StatefulWidget {
-  AnimeListScreen({Key? key}) : super(key: key);
+  const AnimeListScreen({Key? key}) : super(key: key);
 
   @override
   _AnimeListScreenState createState() => _AnimeListScreenState();
@@ -29,6 +29,7 @@ class _AnimeListScreenState extends State<AnimeListScreen> {
   final AnimeServiceApi _animeService = AnimeServiceApi();
   SortOption _sortOption = SortOption.score;
   SortOrder _sortOrder = SortOrder.descending;
+  bool _showSortOptions = false;
 
   @override
   Widget build(BuildContext context) {
@@ -41,63 +42,61 @@ class _AnimeListScreenState extends State<AnimeListScreen> {
           ? AppBar(
               title: const Text('Current Anime Season'),
               actions: [
-                PopupMenuButton<dynamic>(
+                IconButton(
                   icon: const Icon(Icons.sort),
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: SortOption.title,
-                      child: Text("Sort by Title"),
-                    ),
-                    const PopupMenuItem(
-                      value: SortOption.score,
-                      child: Text("Sort by Score"),
-                    ),
-                    const PopupMenuItem(
-                      value: SortOption.popularity,
-                      child: Text("Sort by Popularity"),
-                    ),
-                    const PopupMenuDivider(),
-                    const PopupMenuItem(
-                      value: SortOrder.ascending,
-                      child: Text("Ascending"),
-                    ),
-                    const PopupMenuItem(
-                      value: SortOrder.descending,
-                      child: Text("Descending"),
-                    ),
-                  ],
-                  onSelected: (dynamic value) {
+                  onPressed: () {
                     setState(() {
-                      if (value is SortOption) {
-                        _sortOption = value;
-                      } else if (value is SortOrder) {
-                        _sortOrder = value;
-                      }
+                      _showSortOptions = !_showSortOptions;
                     });
                   },
                 ),
               ],
             )
           : null,
-      body: FutureBuilder<List<Anime>>(
-        future: _animeService.fetchCurrentSeasonAnime().catchError((error) {
-          if (kDebugMode) {
-            print('Failed to load seasonal anime: $error');
-          }
-          return Future.value(<Anime>[]); // Return an empty list of anime
-        }),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (snapshot.hasData) {
-            List<Anime> animeList = snapshot.data!;
-            return _buildAnimeList(context, animeList, isLandscape);
-          } else {
-            return const Center(child: Text('No data available'));
-          }
-        },
+      body: Column(
+        children: [
+          Expanded(
+            child: Stack(
+              children: [
+                Column(
+                  children: [
+                    Expanded(
+                      child: FutureBuilder<List<Anime>>(
+                        future: _animeService
+                            .fetchCurrentSeasonAnime()
+                            .catchError((error) {
+                          if (kDebugMode) {
+                            print('Failed to load seasonal anime: $error');
+                          }
+                          return Future.value(
+                              <Anime>[]); // Return an empty list of anime
+                        }),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Center(
+                                child: Text('Error: ${snapshot.error}'));
+                          } else if (snapshot.hasData) {
+                            List<Anime> animeList = snapshot.data!;
+                            return _buildAnimeList(
+                                context, animeList, isLandscape);
+                          } else {
+                            return const Center(
+                                child: Text('No data available'));
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                _buildSortOptionsBanner(),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -115,9 +114,12 @@ class _AnimeListScreenState extends State<AnimeListScreen> {
           compareResult =
               (a.scores?.score ?? 0).compareTo(b.scores?.score ?? 0);
           break;
-        case SortOption.popularity:
+        case SortOption.rank:
           compareResult =
-              (a.scores?.popularity ?? 0).compareTo(b.scores?.popularity ?? 0);
+              (b.scores?.rank ?? 9999).compareTo(a.scores?.rank ?? 9999);
+          break;
+        case SortOption.favorites:
+          compareResult = (a.favorites ?? 9999).compareTo(b.favorites ?? 9999);
           break;
       }
       return _sortOrder == SortOrder.ascending ? compareResult : -compareResult;
@@ -189,7 +191,9 @@ class _AnimeListScreenState extends State<AnimeListScreen> {
                     children: [
                       _buildAnimeScore(anime),
                       const SizedBox(width: mediumSpacing),
-                      _buildAnimePop(anime),
+                      _buildAnimeRank(anime),
+                      const SizedBox(width: mediumSpacing),
+                      _buildAnimeFavorites(anime),
                     ],
                   ),
                   const SizedBox(height: mediumSpacing),
@@ -224,14 +228,31 @@ class _AnimeListScreenState extends State<AnimeListScreen> {
     return fontSize;
   }
 
+  /// Builds a row displaying the anime's rank using a trophy icon and the rank value.
+  Widget _buildAnimeRank(Anime anime) {
+    return Row(
+      children: [
+        const Icon(Icons.emoji_events, color: Colors.white, size: iconSize),
+        const SizedBox(width: smallSpacing),
+        Text(
+          '#${anime.scores?.rank.toString()}' ?? '#N/A',
+          style: const TextStyle(
+            fontSize: subtitleFontSize,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
   /// Builds a row displaying the anime's popularity using a thumb-up icon and the popularity value.
-  Widget _buildAnimePop(Anime anime) {
+  Widget _buildAnimeFavorites(Anime anime) {
     return Row(
       children: [
         const Icon(Icons.thumb_up, color: Colors.white, size: iconSize),
         const SizedBox(width: smallSpacing),
         Text(
-          anime.scores?.popularity.toString() ?? 'N/A',
+          anime.favorites.toString(),
           style: const TextStyle(
             fontSize: subtitleFontSize,
             color: Colors.white,
@@ -270,6 +291,70 @@ class _AnimeListScreenState extends State<AnimeListScreen> {
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
+      ),
+    );
+  }
+
+  Widget _buildSortOptionsBanner() {
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 300),
+      top: _showSortOptions ? 0 : -kToolbarHeight,
+      left: 0,
+      right: 0,
+      child: Material(
+        elevation: 4.0,
+        child: Container(
+          height: kToolbarHeight,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Icon(Icons.sort),
+              DropdownButton<SortOption>(
+                value: _sortOption,
+                onChanged: (SortOption? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      _sortOption = newValue;
+                    });
+                  }
+                },
+                items: SortOption.values
+                    .map<DropdownMenuItem<SortOption>>((SortOption value) {
+                  return DropdownMenuItem<SortOption>(
+                    value: value,
+                    child: Text(value.toString().split('.').last),
+                  );
+                }).toList(),
+              ),
+              DropdownButton<SortOrder>(
+                value: _sortOrder,
+                onChanged: (SortOrder? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      _sortOrder = newValue;
+                    });
+                  }
+                },
+                items: SortOrder.values
+                    .map<DropdownMenuItem<SortOrder>>((SortOrder value) {
+                  return DropdownMenuItem<SortOrder>(
+                    value: value,
+                    child: Text(value.toString().split('.').last),
+                  );
+                }).toList(),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _showSortOptions = false;
+                  });
+                },
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

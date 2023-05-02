@@ -1,26 +1,58 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../models/anime.dart';
 import 'fullscreen_image.dart';
 
-class AnimeDetailsScreen extends StatelessWidget {
+class AnimeDetailsScreen extends StatefulWidget {
   final Anime anime;
 
   const AnimeDetailsScreen({Key? key, required this.anime}) : super(key: key);
 
   @override
+  _AnimeDetailsScreenState createState() => _AnimeDetailsScreenState();
+}
+
+class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
+  const CustomTabBar({Key? key}) : super(key: key);
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      // color: Theme.of(context).primaryColor,
+      child: TabBar(
+        tabs: [
+          Tab(text: 'Details'),
+          Tab(text: 'Stats'),
+          Tab(text: 'Media'),
+          Tab(text: 'More Info'),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
+  @override
   Widget build(BuildContext context) {
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    return Scaffold(
-      appBar: isLandscape
-          ? null
-          : AppBar(
-              title: Text(anime.titleDetails?.titleEnglish ?? anime.title)),
-      body: isLandscape
-          ? _buildLandscapeLayout(context)
-          : _buildPortraitLayout(context),
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
+        appBar: isLandscape
+            ? null
+            : AppBar(
+                title: Text(widget.anime.titleDetails?.titleEnglish ??
+                    widget.anime.title)),
+        body: isLandscape
+            ? _buildLandscapeLayout(context)
+            : _buildPortraitLayout(context),
+      ),
     );
   }
 
@@ -34,16 +66,21 @@ class AnimeDetailsScreen extends StatelessWidget {
             slivers: [
               SliverAppBar(
                 pinned: true,
-                title: Text(anime.titleDetails?.titleEnglish ?? anime.title),
+                title: Text(widget.anime.titleDetails?.titleEnglish ??
+                    widget.anime.title),
               ),
               SliverList(
-                delegate: SliverChildListDelegate(
-                  [
-                    _buildGenresWidget(),
-                    _buildSynopsisAndAdditionalInfo(context),
-                  ],
-                ),
+                delegate: SliverChildListDelegate([
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildGenresWidget(),
+                      const CustomTabBar(),
+                    ],
+                  ),
+                ]),
               ),
+              SliverFillRemaining(child: _buildTabBarView(context)),
             ],
           ),
         ),
@@ -52,25 +89,426 @@ class AnimeDetailsScreen extends StatelessWidget {
   }
 
   Widget _buildPortraitLayout(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0, top: 8.0),
+              child: _buildCoverImage(context, isLandscape: false),
+            ),
+            Expanded(child: _buildInfoSection()),
+          ],
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0, top: 8.0),
-                child: _buildCoverImage(context, isLandscape: false),
-              ),
-              Expanded(child: _buildInfoSection()),
+              _buildGenresWidget(),
+              const CustomTabBar(),
             ],
           ),
-          _buildGenresWidget(),
-          _buildSynopsisAndAdditionalInfo(context),
+        ),
+        Expanded(child: _buildTabBarView(context)),
+      ],
+    );
+  }
+
+  Widget _buildTabBarView(BuildContext context) {
+    return TabBarView(
+      children: [
+        SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Synopsis',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(widget.anime.synopsis ?? ''),
+                const SizedBox(height: 16),
+                _buildAdditionalInfo(context),
+              ],
+            ),
+          ),
+        ),
+        SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Stats',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                _buildStats(context),
+              ],
+            ),
+          ),
+        ),
+        SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Media',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                _buildMedia(context),
+              ],
+            ),
+          ),
+        ),
+        SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'More Info',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                _buildMoreInfo(context),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStats(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildStatRow(
+          context,
+          Icons.favorite,
+          'Favorites',
+          widget.anime.favorites?.toString() ?? 'N/A',
+        ),
+        _buildStatRow(
+          context,
+          Icons.thumb_up,
+          'Popularity Rank',
+          widget.anime.scores?.popularityRank?.toString() ?? 'N/A',
+        ),
+        _buildStatRow(
+          context,
+          Icons.star,
+          'Score',
+          widget.anime.scores?.score?.toString() ?? 'N/A',
+        ),
+        _buildStatRow(
+          context,
+          Icons.format_list_numbered,
+          'Episodes',
+          widget.anime.details?.episodes?.toString() ?? 'N/A',
+        ),
+        _buildStatRow(
+          context,
+          Icons.live_tv,
+          'Status',
+          widget.anime.details?.status ?? 'N/A',
+        ),
+        _buildStatRow(
+          context,
+          Icons.movie,
+          'Type',
+          widget.anime.details?.type ?? 'N/A',
+        ),
+        _buildStatRow(
+          context,
+          Icons.access_time,
+          'Duration',
+          widget.anime.details?.duration ?? 'N/A',
+        ),
+        _buildStatRow(
+          context,
+          Icons.date_range,
+          'Airing Schedule',
+          _buildAiringScheduleText(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatRow(
+      BuildContext context, IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Icon(icon),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(value),
+              ],
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  String _buildAiringScheduleText() {
+    final airingStart = widget.anime.airingSchedule?.airingStart ?? 'N/A';
+    final airingEnd = widget.anime.airingSchedule?.airingEnd ?? 'N/A';
+
+    if (airingStart == 'N/A' && airingEnd == 'N/A') {
+      return 'N/A';
+    } else if (airingStart == 'N/A') {
+      return 'N/A - $airingEnd';
+    } else if (airingEnd == 'N/A') {
+      return '$airingStart - N/A';
+    } else {
+      return '$airingStart - $airingEnd';
+    }
+  }
+
+  Widget _buildMedia(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildMediaItem(context, Icons.image, 'Cover Image',
+            widget.anime.imageUrls.imageUrl),
+        _buildMediaItem(context, Icons.video_library, 'Trailer',
+            widget.anime.trailer?.youtubeId),
+      ],
+    );
+  }
+
+  Widget _buildMediaItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String? url,
+  ) {
+    if (url == null || url.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    String? videoId;
+    if (label == 'Trailer') {
+      videoId = YoutubePlayer.convertUrlToId(url);
+    }
+
+    String? thumbnailUrl;
+    if (videoId != null) {
+      thumbnailUrl = 'https://img.youtube.com/vi/$videoId/0.jpg';
+    }
+
+    return GestureDetector(
+      onTap: () {
+        if (label == 'Cover Image') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FullscreenImage(imageUrl: url),
+            ),
+          );
+        } else if (label == 'Trailer') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Scaffold(
+                appBar: AppBar(),
+                body: Center(
+                  child: YoutubePlayer(
+                    controller: YoutubePlayerController(
+                      initialVideoId: videoId!,
+                      flags: YoutubePlayerFlags(autoPlay: true),
+                    ),
+                    showVideoProgressIndicator: true,
+                    progressIndicatorColor: Colors.blueAccent,
+                    progressColors: ProgressBarColors(
+                      playedColor: Colors.blueAccent,
+                      handleColor: Colors.blueAccent,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(icon),
+                const SizedBox(width: 8),
+                Text(label),
+              ],
+            ),
+            if (label == 'Trailer' && thumbnailUrl != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CachedNetworkImage(
+                      imageUrl: thumbnailUrl,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                    Icon(
+                      Icons.play_circle_fill,
+                      size: 64,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMoreInfo(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTitleInfo(
+            'Title (English)', widget.anime.titleDetails?.titleEnglish),
+        _buildTitleInfo(
+            'Title (Japanese)', widget.anime.titleDetails?.titleJapanese),
+        _buildSectionInfo('Type', widget.anime.details?.type),
+        _buildSectionInfo('Rating', widget.anime.details?.rating),
+        _buildSectionInfo('Season', widget.anime.details?.season),
+        _buildSectionInfo('Year', widget.anime.details?.year?.toString()),
+        _buildSectionInfo('Broadcast', _buildBroadcastText()),
+        _buildSectionInfo('Background', widget.anime.background),
+        _buildSectionInfo('Producers', _buildProducerText()),
+        _buildSectionInfo('Licensors', _buildLicensorsText()),
+        _buildSectionInfo('Studios', _buildStudiosText()),
+        _buildSectionInfo('Explicit Genres', _buildExplicitGenresText()),
+        _buildSectionInfo('Themes', _buildThemesText()),
+        _buildSectionInfo('Demographics', _buildDemographicsText()),
+      ],
+    );
+  }
+
+  Widget _buildTitleInfo(String label, String? value) {
+    if (value == null || value.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Text(value),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionInfo(String label, String? value) {
+    if (value == null || value.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Text(value),
+        ],
+      ),
+    );
+  }
+
+  String _buildBroadcastText() {
+    final broadcast = widget.anime.broadcast;
+    if (broadcast != null) {
+      final day = broadcast.day ?? '';
+      final time = broadcast.time ?? '';
+      final timezone = broadcast.timezone ?? '';
+      return '$day, $time $timezone';
+    }
+    return 'N/A';
+  }
+
+  String _buildProducerText() {
+    final producers = widget.anime.producers;
+    if (producers != null) {
+      return producers.map((producer) => producer.name).join(', ');
+    }
+    return 'N/A';
+  }
+
+  String _buildLicensorsText() {
+    final licensors = widget.anime.licensors;
+    if (licensors != null) {
+      return licensors.map((licensor) => licensor.name).join(', ');
+    }
+    return 'N/A';
+  }
+
+  String _buildStudiosText() {
+    final studios = widget.anime.studios;
+    if (studios != null) {
+      return studios.map((studio) => studio.name).join(', ');
+    }
+    return 'N/A';
+  }
+
+  String _buildExplicitGenresText() {
+    final explicitGenres = widget.anime.explicitGenres;
+    if (explicitGenres != null) {
+      return explicitGenres.map((genre) => genre.name).join(', ');
+    }
+    return 'N/A';
+  }
+
+  String _buildThemesText() {
+    final themes = widget.anime.themes;
+    if (themes != null) {
+      return themes.map((theme) => theme.name).join(', ');
+    }
+    return 'N/A';
+  }
+
+  String _buildDemographicsText() {
+    final demographics = widget.anime.demographics;
+    if (demographics != null) {
+      return demographics.map((demo) => demo.name).join(', ');
+    }
+    return 'N/A';
   }
 
   Widget _buildSynopsisAndAdditionalInfo(BuildContext context) {
@@ -84,16 +522,27 @@ class AnimeDetailsScreen extends StatelessWidget {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          Text(anime.synopsis ?? ''),
+          Text(widget.anime.synopsis ?? ''),
           const SizedBox(height: 16),
-          const Text(
-            'Additional Information',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          // Add additional information widgets here
+          _buildAdditionalInfo(context),
         ],
       ),
+    );
+  }
+
+  Widget _buildAdditionalInfo(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Additional Information',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Text(widget.anime.titleDetails?.titleEnglish ?? ''),
+        const SizedBox(height: 8),
+        Text(widget.anime.titleDetails?.titleJapanese ?? ''),
+      ],
     );
   }
 
@@ -119,12 +568,13 @@ class AnimeDetailsScreen extends StatelessWidget {
         children: [
           _buildTitleText(),
           const SizedBox(height: 4),
-          _buildIconText(Icons.movie, anime.details?.type),
+          _buildIconText(Icons.movie, widget.anime.details?.type),
           _buildIconText(Icons.format_list_numbered,
-              '${anime.details?.episodes} episodes'),
-          _buildIconText(Icons.live_tv, anime.details?.status),
-          _buildIconText(Icons.star, '${anime.scores?.score}'),
-          _buildIconText(Icons.thumb_up, anime.scores?.popularity.toString()),
+              '${widget.anime.details?.episodes} episodes'),
+          _buildIconText(Icons.live_tv, widget.anime.details?.status),
+          _buildIconText(Icons.star, '${widget.anime.scores?.score}'),
+          _buildIconText(
+              Icons.thumb_up, widget.anime.scores?.popularityRank.toString()),
         ],
       ),
     );
@@ -134,7 +584,7 @@ class AnimeDetailsScreen extends StatelessWidget {
     return SizedBox(
       height: 50,
       child: ListView.builder(
-        itemCount: anime.genres?.length,
+        itemCount: widget.anime.genres?.length,
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
           return Container(
@@ -142,11 +592,11 @@ class AnimeDetailsScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              color: Theme.of(context).primaryColor,
+              // color: Theme.of(context).primaryColor,
             ),
             child: Center(
               child: Text(
-                anime.genres![index].name,
+                widget.anime.genres![index].name,
                 style: const TextStyle(color: Colors.white),
               ),
             ),
@@ -167,7 +617,8 @@ class AnimeDetailsScreen extends StatelessWidget {
         context,
         MaterialPageRoute(
           builder: (context) => FullscreenImage(
-            imageUrl: anime.imageUrls.largeImageUrl ?? anime.imageUrls.imageUrl,
+            imageUrl: widget.anime.imageUrls.largeImageUrl ??
+                widget.anime.imageUrls.imageUrl,
           ),
         ),
       ),
@@ -175,7 +626,7 @@ class AnimeDetailsScreen extends StatelessWidget {
         height: imageHeight,
         width: imageWidth,
         child: CachedNetworkImage(
-          imageUrl: anime.imageUrls.imageUrl,
+          imageUrl: widget.anime.imageUrls.imageUrl,
           fit: BoxFit.cover,
           errorWidget: (context, url, error) => Image.asset(
             'assets/images/placeholderAnime.jpg',
@@ -188,7 +639,7 @@ class AnimeDetailsScreen extends StatelessWidget {
 
   Widget _buildTitleText() {
     return AutoSizeText(
-      anime.titleDetails?.titleEnglish ?? anime.title,
+      widget.anime.titleDetails?.titleEnglish ?? widget.anime.title,
       style: const TextStyle(
         fontSize: 20,
         shadows: [
