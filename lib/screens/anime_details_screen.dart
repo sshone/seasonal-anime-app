@@ -332,19 +332,24 @@ class _AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => Scaffold(
-                appBar: AppBar(),
-                body: Center(
-                  child: YoutubePlayer(
-                    controller: YoutubePlayerController(
-                      initialVideoId: videoId!,
-                      flags: YoutubePlayerFlags(autoPlay: true),
-                    ),
-                    showVideoProgressIndicator: true,
-                    progressIndicatorColor: Colors.blueAccent,
-                    progressColors: ProgressBarColors(
-                      playedColor: Colors.blueAccent,
-                      handleColor: Colors.blueAccent,
-                    ),
+                body: SafeArea(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: YoutubePlayer(
+                          controller: YoutubePlayerController(
+                            initialVideoId: videoId!,
+                            flags: YoutubePlayerFlags(autoPlay: true),
+                          ),
+                          showVideoProgressIndicator: true,
+                          progressIndicatorColor: Colors.blueAccent,
+                          progressColors: ProgressBarColors(
+                            playedColor: Colors.blueAccent,
+                            handleColor: Colors.blueAccent,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -371,7 +376,6 @@ class _AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
                   children: [
                     CachedNetworkImage(
                       imageUrl: thumbnailUrl,
-                      width: double.infinity,
                       fit: BoxFit.cover,
                     ),
                     Icon(

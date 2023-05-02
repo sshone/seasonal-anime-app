@@ -40,7 +40,7 @@ class _AnimeListScreenState extends State<AnimeListScreen> {
     return Scaffold(
       appBar: showAppBar
           ? AppBar(
-              title: const Text('Current Anime Season'),
+              title: const Text('Anime Season Guide'),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.sort),
