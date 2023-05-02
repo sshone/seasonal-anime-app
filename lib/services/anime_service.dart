@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:seasonal_anime_app/models/anime.dart';
+import 'package:seasonal_anime_app/models/DTO/anime.dart';
 
+import '../models/anime.dart';
 import 'cache_service.dart';
 
 abstract class AnimeService {
@@ -24,22 +24,22 @@ class AnimeServiceApi implements AnimeService {
   Future<List<Anime>> fetchCurrentSeasonAnime() async {
     log('Fetching current season anime');
     final cachedData =
-        _cacheService.getData<List<Anime>>('current_season_anime');
+        _cacheService.getData<List<AnimeDTO>>('current_season_anime');
     if (cachedData != null) {
       log('Returning cached data');
-      return cachedData;
+      return cachedData.map((e) => Anime.fromDTO(e)).toList();
     } else {
       log('Fetching data from API');
-      final List<Anime> animeList = await _fetchAnimeListWithRetries();
+      final List<AnimeDTO> animeList = await _fetchAnimeListWithRetries();
       _cacheService.setData('current_season_anime', animeList);
-      return animeList;
+      return animeList.map((e) => Anime.fromDTO(e)).toList();
     }
   }
 
-  Future<List<Anime>> _fetchAnimeListWithRetries() async {
+  Future<List<AnimeDTO>> _fetchAnimeListWithRetries() async {
     int retryCount = 0;
     int consecutiveErrors = 0;
-    List<Anime> animeList = [];
+    List<AnimeDTO> animeList = [];
     int currentPage = 1;
 
     do {
@@ -89,11 +89,11 @@ class AnimeServiceApi implements AnimeService {
     return response.statusCode == 200;
   }
 
-  List<Anime> _parseAnimeList(Map<String, dynamic> jsonResponse) {
+  List<AnimeDTO> _parseAnimeList(Map<String, dynamic> jsonResponse) {
     final List<dynamic> data = jsonResponse['data'];
     log('Fetched ${data.length} anime');
     log('Attempting to parse anime');
-    return data.map((jsonAnime) => Anime.fromJson(jsonAnime)).toList();
+    return data.map((jsonAnime) => AnimeDTO.fromJson(jsonAnime)).toList();
   }
 
   Future<void> _delayRetry() {

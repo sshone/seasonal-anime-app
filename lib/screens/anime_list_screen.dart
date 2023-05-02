@@ -6,20 +6,20 @@ import 'package:seasonal_anime_app/services/anime_service.dart';
 import '../models/anime.dart';
 import 'anime_details_screen.dart';
 
-enum SortOption { title, score, popularity }
+enum SortOption { title, score, rank, favorites }
 
 enum SortOrder { ascending, descending }
 
 const double paddingSize = 8.0;
 const double titleFontSize = 18.0;
-const double subtitleFontSize = 14.0;
+const double subtitleFontSize = 10.0;
 const double iconSize = 16.0;
 const double smallSpacing = 4.0;
 const double mediumSpacing = 8.0;
 const double cardAspectRatio = 2 / 3;
 
 class AnimeListScreen extends StatefulWidget {
-  AnimeListScreen({Key? key}) : super(key: key);
+  const AnimeListScreen({Key? key}) : super(key: key);
 
   @override
   _AnimeListScreenState createState() => _AnimeListScreenState();
@@ -114,9 +114,12 @@ class _AnimeListScreenState extends State<AnimeListScreen> {
           compareResult =
               (a.scores?.score ?? 0).compareTo(b.scores?.score ?? 0);
           break;
-        case SortOption.popularity:
+        case SortOption.rank:
           compareResult =
-              (a.scores?.popularity ?? 0).compareTo(b.scores?.popularity ?? 0);
+              (b.scores?.rank ?? 9999).compareTo(a.scores?.rank ?? 9999);
+          break;
+        case SortOption.favorites:
+          compareResult = (a.favorites ?? 9999).compareTo(b.favorites ?? 9999);
           break;
       }
       return _sortOrder == SortOrder.ascending ? compareResult : -compareResult;
@@ -188,7 +191,9 @@ class _AnimeListScreenState extends State<AnimeListScreen> {
                     children: [
                       _buildAnimeScore(anime),
                       const SizedBox(width: mediumSpacing),
-                      _buildAnimePop(anime),
+                      _buildAnimeRank(anime),
+                      const SizedBox(width: mediumSpacing),
+                      _buildAnimeFavorites(anime),
                     ],
                   ),
                   const SizedBox(height: mediumSpacing),
@@ -223,14 +228,31 @@ class _AnimeListScreenState extends State<AnimeListScreen> {
     return fontSize;
   }
 
+  /// Builds a row displaying the anime's rank using a trophy icon and the rank value.
+  Widget _buildAnimeRank(Anime anime) {
+    return Row(
+      children: [
+        const Icon(Icons.emoji_events, color: Colors.white, size: iconSize),
+        const SizedBox(width: smallSpacing),
+        Text(
+          '#${anime.scores?.rank.toString()}' ?? '#N/A',
+          style: const TextStyle(
+            fontSize: subtitleFontSize,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
   /// Builds a row displaying the anime's popularity using a thumb-up icon and the popularity value.
-  Widget _buildAnimePop(Anime anime) {
+  Widget _buildAnimeFavorites(Anime anime) {
     return Row(
       children: [
         const Icon(Icons.thumb_up, color: Colors.white, size: iconSize),
         const SizedBox(width: smallSpacing),
         Text(
-          anime.scores?.popularity.toString() ?? 'N/A',
+          anime.favorites.toString(),
           style: const TextStyle(
             fontSize: subtitleFontSize,
             color: Colors.white,
