@@ -515,25 +515,6 @@ class _AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
     return 'N/A';
   }
 
-  Widget _buildSynopsisAndAdditionalInfo(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Synopsis',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(widget.anime.synopsis ?? ''),
-          const SizedBox(height: 16),
-          _buildAdditionalInfo(context),
-        ],
-      ),
-    );
-  }
-
   Widget _buildAdditionalInfo(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
