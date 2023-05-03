@@ -22,10 +22,10 @@ class AnimeListScreen extends StatefulWidget {
   const AnimeListScreen({Key? key}) : super(key: key);
 
   @override
-  _AnimeListScreenState createState() => _AnimeListScreenState();
+  AnimeListScreenState createState() => AnimeListScreenState();
 }
 
-class _AnimeListScreenState extends State<AnimeListScreen> {
+class AnimeListScreenState extends State<AnimeListScreen> {
   final AnimeServiceApi _animeService = AnimeServiceApi();
   SortOption _sortOption = SortOption.score;
   SortOrder _sortOrder = SortOrder.descending;
