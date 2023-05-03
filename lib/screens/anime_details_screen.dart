@@ -128,9 +128,7 @@ class AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(widget.anime.synopsis ?? ''),
-                const SizedBox(height: 16),
-                _buildAdditionalInfo(context),
+                Text(widget.anime.synopsis ?? 'N/A')
               ],
             ),
           ),
@@ -141,11 +139,6 @@ class AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Stats',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
                 _buildStats(context),
               ],
             ),
@@ -157,11 +150,6 @@ class AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Media',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
                 _buildMedia(context),
               ],
             ),
@@ -173,11 +161,6 @@ class AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'More Info',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
                 _buildMoreInfo(context),
               ],
             ),
@@ -287,8 +270,12 @@ class AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildMediaItem(context, Icons.image, 'Cover Image',
-            widget.anime.imageUrls.imageUrl),
+        _buildMediaItem(
+            context,
+            Icons.image,
+            'Cover Image',
+            widget.anime.imageUrls.largeImageUrl ??
+                widget.anime.imageUrls.imageUrl),
         _buildMediaItem(context, Icons.video_library, 'Trailer',
             widget.anime.trailer?.youtubeId),
       ],
@@ -393,6 +380,7 @@ class AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _buildTitleInfo('Title', widget.anime.title),
         _buildTitleInfo(
             'Title (English)', widget.anime.titleDetails?.titleEnglish),
         _buildTitleInfo(

@@ -66,7 +66,7 @@ class Anime {
       details: dto.type != null ||
               dto.episodes != null ||
               dto.status != null ||
-              dto.duration != null ||
+              (dto.duration != null && dto.duration != "Unknown") ||
               dto.rating != null ||
               dto.season != null ||
               dto.year != null
@@ -74,7 +74,9 @@ class Anime {
               type: dto.type,
               episodes: dto.episodes,
               status: dto.status,
-              duration: dto.duration,
+              duration: dto.duration?.toLowerCase() == "unknown"
+                  ? null
+                  : dto.duration,
               rating: dto.rating,
               season: dto.season,
               year: dto.year,
