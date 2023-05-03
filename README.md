@@ -15,6 +15,14 @@ This is a simple Flutter application that displays detailed information about an
 - Responsive layout that adapts to different screen sizes and orientations
 - Caching of data for for improved performance and less data usage
 
+## Screenshots
+
+### List View
+![List View](https://user-images.githubusercontent.com/127620387/235943441-30e312a0-50a8-4e1f-a1ba-24a935f6a8a0.png)
+
+### Details View
+![Details View](https://user-images.githubusercontent.com/127620387/235943598-fa38b5ec-d1c5-4327-b4f0-57dc01e08908.png)
+
 ## Getting Started
 
 To get started with this project, follow these steps:
