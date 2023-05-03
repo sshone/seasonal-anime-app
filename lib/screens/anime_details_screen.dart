@@ -633,7 +633,7 @@ class _AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
           imageUrl: widget.anime.imageUrls.imageUrl,
           fit: BoxFit.cover,
           errorWidget: (context, url, error) => Image.asset(
-            'assets/images/placeholderAnime.jpg',
+            'assets/images/placeholderAnime.png',
             fit: BoxFit.cover,
           ),
         ),
