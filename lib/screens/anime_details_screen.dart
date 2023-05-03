@@ -11,7 +11,7 @@ class AnimeDetailsScreen extends StatefulWidget {
   const AnimeDetailsScreen({Key? key, required this.anime}) : super(key: key);
 
   @override
-  _AnimeDetailsScreenState createState() => _AnimeDetailsScreenState();
+  AnimeDetailsScreenState createState() => AnimeDetailsScreenState();
 }
 
 class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
@@ -22,21 +22,18 @@ class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      // color: Theme.of(context).primaryColor,
-      child: TabBar(
-        tabs: [
-          Tab(text: 'Details'),
-          Tab(text: 'Stats'),
-          Tab(text: 'Media'),
-          Tab(text: 'More Info'),
-        ],
-      ),
+    return const TabBar(
+      tabs: [
+        Tab(text: 'Details'),
+        Tab(text: 'Stats'),
+        Tab(text: 'Media'),
+        Tab(text: 'More Info'),
+      ],
     );
   }
 }
 
-class _AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
+class AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final isLandscape =
@@ -198,7 +195,7 @@ class _AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
       crossAxisCount: isLandscape ? 2 : 2,
       childAspectRatio: isLandscape ? 2 : 1.5,
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       children: [
         _buildStatCard(
           context,
@@ -270,7 +267,7 @@ class _AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
             const SizedBox(height: 8),
             AutoSizeText(
               label,
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -339,11 +336,11 @@ class _AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
                         child: YoutubePlayer(
                           controller: YoutubePlayerController(
                             initialVideoId: videoId!,
-                            flags: YoutubePlayerFlags(autoPlay: true),
+                            flags: const YoutubePlayerFlags(autoPlay: true),
                           ),
                           showVideoProgressIndicator: true,
                           progressIndicatorColor: Colors.blueAccent,
-                          progressColors: ProgressBarColors(
+                          progressColors: const ProgressBarColors(
                             playedColor: Colors.blueAccent,
                             handleColor: Colors.blueAccent,
                           ),
@@ -378,7 +375,7 @@ class _AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
                       imageUrl: thumbnailUrl,
                       fit: BoxFit.cover,
                     ),
-                    Icon(
+                    const Icon(
                       Icons.play_circle_fill,
                       size: 64,
                       color: Colors.white,
@@ -428,7 +425,7 @@ class _AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
         children: [
           Text(
             label,
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           Text(value),
         ],
@@ -448,7 +445,7 @@ class _AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
         children: [
           Text(
             label,
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           Text(value),
         ],
@@ -554,8 +551,9 @@ class _AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
           _buildTitleText(),
           const SizedBox(height: 4),
           _buildIconText(Icons.movie, widget.anime.details?.type),
-          _buildIconText(Icons.format_list_numbered,
-              '${widget.anime.details?.episodes} episodes'),
+          if (widget.anime.details?.episodes != null)
+            _buildIconText(Icons.format_list_numbered,
+                '${widget.anime.details!.episodes} episodes'),
           _buildIconText(Icons.live_tv, widget.anime.details?.status),
           _buildIconText(Icons.star, '${widget.anime.scores?.score}'),
           _buildIconText(
