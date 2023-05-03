@@ -191,99 +191,99 @@ class _AnimeDetailsScreenState extends State<AnimeDetailsScreen> {
   }
 
   Widget _buildStats(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
+    return GridView.count(
+      crossAxisCount: isLandscape ? 2 : 2,
+      childAspectRatio: isLandscape ? 2 : 1.5,
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
       children: [
-        _buildStatRow(
+        _buildStatCard(
           context,
           Icons.favorite,
           'Favorites',
-          widget.anime.favorites?.toString() ?? 'N/A',
+          widget.anime.favorites?.toString(),
         ),
-        _buildStatRow(
+        _buildStatCard(
           context,
           Icons.thumb_up,
           'Popularity Rank',
-          widget.anime.scores?.popularityRank?.toString() ?? 'N/A',
+          widget.anime.scores?.popularityRank?.toString(),
         ),
-        _buildStatRow(
+        _buildStatCard(
           context,
           Icons.star,
           'Score',
-          widget.anime.scores?.score?.toString() ?? 'N/A',
+          widget.anime.scores?.score?.toString(),
         ),
-        _buildStatRow(
+        _buildStatCard(
           context,
           Icons.format_list_numbered,
           'Episodes',
-          widget.anime.details?.episodes?.toString() ?? 'N/A',
+          widget.anime.details?.episodes?.toString(),
         ),
-        _buildStatRow(
+        _buildStatCard(
           context,
           Icons.live_tv,
           'Status',
-          widget.anime.details?.status ?? 'N/A',
+          widget.anime.details?.status,
         ),
-        _buildStatRow(
+        _buildStatCard(
           context,
           Icons.movie,
           'Type',
-          widget.anime.details?.type ?? 'N/A',
+          widget.anime.details?.type,
         ),
-        _buildStatRow(
+        _buildStatCard(
           context,
           Icons.access_time,
-          'Duration',
-          widget.anime.details?.duration ?? 'N/A',
+          'Episode Duration',
+          widget.anime.details?.duration,
         ),
-        _buildStatRow(
-          context,
-          Icons.date_range,
-          'Airing Schedule',
-          _buildAiringScheduleText(),
-        ),
-      ],
+      ]
+          .where((card) => card != null)
+          .map((card) => Flexible(child: FractionallySizedBox(child: card!)))
+          .toList(),
     );
   }
 
-  Widget _buildStatRow(
-      BuildContext context, IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(value),
-              ],
+  Widget? _buildStatCard(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String? value,
+  ) {
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon),
+            const SizedBox(height: 8),
+            AutoSizeText(
+              label,
+              style: TextStyle(fontWeight: FontWeight.bold),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            AutoSizeText(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  String _buildAiringScheduleText() {
-    final airingStart = widget.anime.airingSchedule?.airingStart ?? 'N/A';
-    final airingEnd = widget.anime.airingSchedule?.airingEnd ?? 'N/A';
-
-    if (airingStart == 'N/A' && airingEnd == 'N/A') {
-      return 'N/A';
-    } else if (airingStart == 'N/A') {
-      return 'N/A - $airingEnd';
-    } else if (airingEnd == 'N/A') {
-      return '$airingStart - N/A';
-    } else {
-      return '$airingStart - $airingEnd';
-    }
   }
 
   Widget _buildMedia(BuildContext context) {
