@@ -70,11 +70,18 @@ class AnimeCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildAnimeScore(anime),
+                      _buildAnimeInfo(Icons.star,
+                          anime.scores?.score?.toString(), Colors.yellow),
                       const SizedBox(width: mediumSpacing),
-                      _buildAnimeRank(anime),
+                      _buildAnimeInfo(
+                          Icons.emoji_events,
+                          anime.scores?.rank != null
+                              ? '#${anime.scores?.rank}'
+                              : null,
+                          Colors.grey),
                       const SizedBox(width: mediumSpacing),
-                      _buildAnimeFavorites(anime),
+                      _buildAnimeInfo(Icons.thumb_up,
+                          anime.favorites?.toString(), Colors.blueGrey),
                     ],
                   ),
                   const SizedBox(height: mediumSpacing),
@@ -87,45 +94,17 @@ class AnimeCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAnimeRank(Anime anime) {
-    return Row(
-      children: [
-        const Icon(Icons.emoji_events, color: Colors.white, size: iconSize),
-        const SizedBox(width: smallSpacing),
-        Text(
-          '#${anime.scores?.rank.toString()}',
-          style: const TextStyle(
-            fontSize: subtitleFontSize,
-            color: Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
+  Widget _buildAnimeInfo(IconData iconData, String? text, Color iconColor) {
+    if (text == null || text.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-  Widget _buildAnimeFavorites(Anime anime) {
     return Row(
       children: [
-        const Icon(Icons.thumb_up, color: Colors.white, size: iconSize),
+        Icon(iconData, color: iconColor, size: iconSize),
         const SizedBox(width: smallSpacing),
         Text(
-          anime.favorites.toString(),
-          style: const TextStyle(
-            fontSize: subtitleFontSize,
-            color: Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAnimeScore(Anime anime) {
-    return Row(
-      children: [
-        const Icon(Icons.star, color: Colors.yellow, size: iconSize),
-        const SizedBox(width: smallSpacing),
-        Text(
-          anime.scores?.score.toString() ?? 'N/A',
+          text,
           style: const TextStyle(
             fontSize: subtitleFontSize,
             color: Colors.white,
