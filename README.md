@@ -21,7 +21,11 @@ This is a simple Flutter application that displays detailed information about an
 ![List View](https://user-images.githubusercontent.com/127620387/235943441-30e312a0-50a8-4e1f-a1ba-24a935f6a8a0.png)
 
 ### Details View
-![Details View](https://user-images.githubusercontent.com/127620387/235943598-fa38b5ec-d1c5-4327-b4f0-57dc01e08908.png)
+#### Portrait View
+![Details Portrait View](https://user-images.githubusercontent.com/127620387/235943598-fa38b5ec-d1c5-4327-b4f0-57dc01e08908.png)
+
+#### Landscape View
+![Details Landscape View](https://user-images.githubusercontent.com/127620387/235944288-744714c6-d79a-41b6-aa9a-049d3e676680.png)
 
 ## Getting Started
 
