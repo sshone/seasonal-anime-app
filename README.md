@@ -1,7 +1,7 @@
 # Anime Season Guide
 ### Your Companion for Seasonal Anime
 
-This is a simple Flutter application that displays detailed information about an anime, including the title, genres, synopsis, and other relevant details. The app is designed to work on both portrait and landscape modes, adapting the layout accordingly.
+This is a simple Flutter application that displays detailed information about the current season's anime, including the title, genres, synopsis, and other relevant details. The app is designed to work on both portrait and landscape modes, adapting the layout accordingly.
 
 ## Features
 
